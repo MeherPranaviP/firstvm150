@@ -8,8 +8,6 @@ Bike
 Socks
 Elbow pads
 toothpaste
-hat
-chocolatebar
 Knee Pads
 Roller Blades
 Helmet
@@ -93,8 +91,6 @@ SELECT description,numberofitemsonhand FROM products WHERE productid NOT in (SEL
 description	numberofitemsonhand
 Bike	200
 toothpaste	100
-hat	250
-chocolatebar	400
 Roller Blades	89
 --------------
 SELECT description,numberofitemsonhand from products WHERE productid NOT in (SELECT productid FROM purchasinginfo WHERE purchasinginfo.customerid = (SELECT customerid FROM customers WHERE customers.first_name = "Fred" and customers.last_name = "Flintstone"))
@@ -104,8 +100,6 @@ description	numberofitemsonhand
 Bike	200
 Socks	100
 toothpaste	100
-hat	250
-chocolatebar	400
 Roller Blades	89
 Helmet	30
 --------------

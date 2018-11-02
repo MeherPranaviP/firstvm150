@@ -22,14 +22,6 @@ INSERT INTO products(productid,description,costperitem,numberofitemsonhand) VALU
 --------------
 
 --------------
-INSERT INTO products(productid,description,costperitem,numberofitemsonhand) VALUES("68","hat",10,250)
---------------
-
---------------
-INSERT INTO products(productid,description,costperitem,numberofitemsonhand) VALUES("69","chocolatebar",2.25,400)
---------------
-
---------------
 INSERT INTO agents(agent_id,first_name,last_name,city,commission_percentage)VALUES("99","Hugh","Grant","Springfield","16")
 --------------
 
@@ -134,8 +126,6 @@ productid	description	costperitem	numberofitemsonhand
 12	Socks	2	100
 66	Elbow pads	14.25	120
 67	toothpaste	4.5	100
-68	hat	10	250
-69	chocolatebar	2.25	400
 78	Knee Pads	12.15	70
 88	Roller Blades	75	89
 99	Helmet	29	30
@@ -238,8 +228,6 @@ productid	description	costperitem	numberofitemsonhand
 12	Socks	2	100
 66	Elbow pads	14.25	120
 67	toothpaste	4.5	100
-68	hat	10	250
-69	chocolatebar	2.25	400
 78	Knee Pads	12.15	70
 88	Roller Blades	75	89
 99	Helmet	29	30

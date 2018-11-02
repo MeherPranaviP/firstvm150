@@ -3,8 +3,6 @@ LOAD DATA LOCAL INFILE 'insertdata.txt' INTO TABLE products FIELDS TERMINATED BY
 SELECT * FROM products;
 INSERT INTO products(productid,description,costperitem,numberofitemsonhand) VALUES("66","Elbow pads",14.25,120);
 INSERT INTO products(productid,description,costperitem,numberofitemsonhand) VALUES("67","toothpaste",4.50,100);
-INSERT INTO products(productid,description,costperitem,numberofitemsonhand) VALUES("68","hat",10,250);
-INSERT INTO products(productid,description,costperitem,numberofitemsonhand) VALUES("69","chocolatebar",2.25,400);
 INSERT INTO agents(agent_id,first_name,last_name,city,commission_percentage)VALUES("99","Hugh","Grant","Springfield","16");
 INSERT INTO agents(agent_id,first_name,last_name,city,commission_percentage) VALUES("22","Courtney","Cox","New York","25");
 INSERT INTO agents(agent_id,first_name,last_name,city,commission_percentage) VALUES("66","Rosie","ODonnell","Ottawa","100");
