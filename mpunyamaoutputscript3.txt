@@ -1,0 +1,139 @@
+Warning: Using a password on the command line interface can be insecure.
+--------------
+SELECT description FROM products
+--------------
+
+description
+Bike
+Socks
+Elbow pads
+toothpaste
+hat
+chocolatebar
+Knee Pads
+Roller Blades
+Helmet
+--------------
+SELECT DISTINCT city FROM customers
+--------------
+
+city
+Boston
+Springfield
+Kypto
+Providence
+--------------
+SELECT * FROM agents ORDER BY city ASC
+--------------
+
+agent_id	first_name	last_name	city	commission_percentage
+33	David	Letterman	Bedrock	100
+11	Regis	Philbin	Boston	33
+70	Pranavi	Punyamanthula	Hyderabad	150
+22	Courtney	Cox	New York	25
+12	Rosie	Cox	Ottawa	50
+66	Rosie	ODonnell	Ottawa	100
+99	Hugh	Grant	Springfield	16
+--------------
+SELECT first_name,last_name FROM customers where city = "Springfield"
+--------------
+
+first_name	last_name
+Monty	Burns
+Homer	Simpson
+Sideshow	Bob
+--------------
+SELECT customers.last_name from customers,agents where customers.agent_id = agents.agent_id and agents.first_name = "Regis"
+--------------
+
+last_name
+Rubble
+Flintstone
+--------------
+SELECT description FROM products WHERE description LIKE '%Pad%'
+--------------
+
+description
+Elbow pads
+Knee Pads
+--------------
+SELECT customers.last_name, products.description,purchasinginfo.numberofitemsonhand FROM customers,products,purchasinginfo WHERE customers.customerid = purchasinginfo.customerid AND products.productid = purchasinginfo.productid
+--------------
+
+last_name	description	numberofitemsonhand
+Griffens	Elbow pads	19
+Flintstone	Elbow pads	2
+Flintstone	Knee Pads	2
+Simpson	Helmet	20
+Simpson	Socks	14
+Simpson	Elbow pads	10
+Bob	Helmet	5
+Bob	Socks	5
+Bob	Knee Pads	5
+Bob	Elbow pads	5
+--------------
+SELECT SUM(numberofitemsonhand) AS Homers_Total_Purchases FROM purchasinginfo WHERE purchasinginfo.customerid = (SELECT customerid FROM customers WHERE first_name = "Homer")
+--------------
+
+Homers_Total_Purchases
+44
+--------------
+SELECT first_name,last_name,SUM(numberofitemsonhand) AS Total_Number_Purchases FROM purchasinginfo,customers WHERE purchasinginfo.customerid = customers.customerid GROUP BY customers.customerid
+--------------
+
+first_name	last_name	Total_Number_Purchases
+Peter	Griffens	19
+Fred	Flintstone	4
+Homer	Simpson	44
+Sideshow	Bob	20
+--------------
+SELECT description,numberofitemsonhand FROM products WHERE productid NOT in (SELECT productid FROM purchasinginfo)
+--------------
+
+description	numberofitemsonhand
+Bike	200
+toothpaste	100
+hat	250
+chocolatebar	400
+Roller Blades	89
+--------------
+SELECT description,numberofitemsonhand from products WHERE productid NOT in (SELECT productid FROM purchasinginfo WHERE purchasinginfo.customerid = (SELECT customerid FROM customers WHERE customers.first_name = "Fred" and customers.last_name = "Flintstone"))
+--------------
+
+description	numberofitemsonhand
+Bike	200
+Socks	100
+toothpaste	100
+hat	250
+chocolatebar	400
+Roller Blades	89
+Helmet	30
+--------------
+SELECT agents.first_name as Agent_FN,agents.last_name as Agent_LN,customers.first_name as Cus_FN,customers.last_name as Cus_LN from agents,customers where agents.city = customers.city
+--------------
+
+Agent_FN	Agent_LN	Cus_FN	Cus_LN
+Regis	Philbin	Barney	Rubble
+Hugh	Grant	Monty	Burns
+Regis	Philbin	Fred	Flintstone
+Hugh	Grant	Homer	Simpson
+Hugh	Grant	Sideshow	Bob
+--------------
+SELECT SUM(numberofitemsonhand) AS Total_knee_pad_purchases FROM purchasinginfo WHERE productid = (SELECT productid FROM products WHERE description LIKE "knee%")
+--------------
+
+Total_knee_pad_purchases
+7
+--------------
+SELECT description FROM products WHERE productid = (SELECT productid FROM purchasinginfo GROUP BY  productid HAVING COUNT(productid) > 3)
+--------------
+
+description
+Elbow pads
+--------------
+SELECT agents.first_name,agents.last_name FROM agents,customers,purchasinginfo,products WHERE agents.agent_id = customers.agent_id AND customers.customerid = purchasinginfo.customerid AND purchasinginfo.productid = products.productid AND description LIKE "knee%"
+--------------
+
+first_name	last_name
+Regis	Philbin
+Rosie	ODonnell

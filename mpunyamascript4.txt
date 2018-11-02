@@ -1,0 +1,14 @@
+USE mpunyamaassign2db;
+SELECT * FROM products;
+SELECT * FROM agents;
+SELECT * FROM customers;
+SELECT * FROM purchasinginfo;
+CREATE VIEW customer_purchase AS SELECT customers.first_name,customers.last_name,products.description,purchasinginfo.numberofitemsonhand,products.costperitem,(purchasinginfo.numberofitemsonhand*products.costperitem) as Totalcostofitem FROM customers,purchasinginfo,products where customers.customerid = purchasinginfo.customerid and purchasinginfo.productid = products.productid GROUP BY  customers.customerid ORDER BY  customers.last_name;
+SELECT * FROM customer_purchase;
+SELECT * FROM customer_purchase WHERE Totalcostofitem > 100;
+DELETE FROM products WHERE description = "toothpaste";
+SELECT * FROM products;
+DELETE FROM agents WHERE city = "Springfield";
+--the row in agents table did not delete as its parent table gets affected if any changes happen to this table due to foreign key constraint
+
+

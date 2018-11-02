@@ -1,0 +1,19 @@
+Drop DATABASE IF EXISTS mpunyamaassign2db;
+CREATE DATABASE mpunyamaassign2db;
+USE mpunyamaassign2db;
+GRANT USAGE ON *.* TO 'ta'@'localhost';
+DROP USER 'ta'@'localhost';
+CREATE USER 'ta'@'localhost' IDENTIFIED BY 'cs3319';
+GRANT ALL PRIVILEGES ON yourwesternuseridassign2db.* TO 'ta'@'localhost';
+FLUSH PRIVILEGES;
+SHOW TABLES;
+
+CREATE TABLE agents(agent_id CHAR(2) NOT NULL,first_name CHAR(30),last_name CHAR(30), city CHAR(15),commission_percentage INT, PRIMARY KEY(agent_id));
+CREATE TABLE customers(customerid CHAR(2) NOT NULL,first_name CHAR(30),last_name CHAR(30),city CHAR(15),phone_number VARCHAR(20),agent_id CHAR(2),FOREIGN KEY(agent_id) REFERENCES agents(agent_id),PRIMARY KEY(customerid));
+CREATE TABLE products(productid CHAR(2) NOT NULL,description CHAR(20),costperitem FLOAT, numberofitemsonhand INT,PRIMARY KEY(productid));
+CREATE TABLE purchasinginfo(productid CHAR(2) , numberofitemsonhand INT,customerid CHAR(2),FOREIGN KEY(customerid) REFERENCES customers(customerid),FOREIGN KEY(productid) REFERENCES products(productid));
+
+SHOW TABLES;
+
+
+

@@ -1,0 +1,16 @@
+USE mpunyamaassign2db;
+SELECT description FROM products;
+SELECT DISTINCT city FROM customers;
+SELECT * FROM agents ORDER BY city ASC;
+SELECT first_name,last_name FROM customers where city = "Springfield";
+SELECT customers.last_name from customers,agents where customers.agent_id = agents.agent_id and agents.first_name = "Regis";
+SELECT description FROM products WHERE description LIKE '%Pad%';
+SELECT customers.last_name, products.description,purchasinginfo.numberofitemsonhand FROM customers,products,purchasinginfo WHERE customers.customerid = purchasinginfo.customerid AND products.productid = purchasinginfo.productid;
+SELECT SUM(numberofitemsonhand) AS Homers_Total_Purchases FROM purchasinginfo WHERE purchasinginfo.customerid = (SELECT customerid FROM customers WHERE first_name = "Homer");
+SELECT first_name,last_name,SUM(numberofitemsonhand) AS Total_Number_Purchases FROM purchasinginfo,customers WHERE purchasinginfo.customerid = customers.customerid GROUP BY customers.customerid;
+SELECT description,numberofitemsonhand FROM products WHERE productid NOT in (SELECT productid FROM purchasinginfo);
+SELECT description,numberofitemsonhand from products WHERE productid NOT in (SELECT productid FROM purchasinginfo WHERE purchasinginfo.customerid = (SELECT customerid FROM customers WHERE customers.first_name = "Fred" and customers.last_name = "Flintstone"));
+SELECT agents.first_name as Agent_FN,agents.last_name as Agent_LN,customers.first_name as Cus_FN,customers.last_name as Cus_LN from agents,customers where agents.city = customers.city;
+SELECT SUM(numberofitemsonhand) AS Total_knee_pad_purchases FROM purchasinginfo WHERE productid = (SELECT productid FROM products WHERE description LIKE "knee%");
+SELECT description FROM products WHERE productid = (SELECT productid FROM purchasinginfo GROUP BY  productid HAVING COUNT(productid) > 3);
+SELECT agents.first_name,agents.last_name FROM agents,customers,purchasinginfo,products WHERE agents.agent_id = customers.agent_id AND customers.customerid = purchasinginfo.customerid AND purchasinginfo.productid = products.productid AND description LIKE "knee%";

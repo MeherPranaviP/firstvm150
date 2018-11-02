@@ -1,0 +1,97 @@
+Warning: Using a password on the command line interface can be insecure.
+ERROR 1451 (23000) at line 11: Cannot delete or update a parent row: a foreign key constraint fails (`mpunyamaassign2db`.`customers`, CONSTRAINT `customers_ibfk_1` FOREIGN KEY (`agent_id`) REFERENCES `agents` (`agent_id`))
+--------------
+SELECT * FROM products
+--------------
+
+productid	description	costperitem	numberofitemsonhand
+11	Bike	150	200
+12	Socks	2	100
+66	Elbow pads	14.25	120
+67	toothpaste	4.5	100
+68	hat	10	250
+69	chocolatebar	2.25	400
+78	Knee Pads	12.15	70
+88	Roller Blades	75	89
+99	Helmet	29	30
+--------------
+SELECT * FROM agents
+--------------
+
+agent_id	first_name	last_name	city	commission_percentage
+11	Regis	Philbin	Boston	33
+12	Rosie	Cox	Ottawa	50
+22	Courtney	Cox	New York	25
+33	David	Letterman	Bedrock	100
+66	Rosie	ODonnell	Ottawa	100
+70	Pranavi	Punyamanthula	Hyderabad	150
+99	Hugh	Grant	Springfield	16
+--------------
+SELECT * FROM customers
+--------------
+
+customerid	first_name	last_name	city	phone_number	agent_id
+10	Barney	Rubble	Boston	777-1234	11
+12	Monty	Burns	Springfield	789-0000	99
+13	Wonder	Woman	Kypto	888-1234	33
+14	Peter	Griffens	Providence	987-4567	99
+15	Fred	Flintstone	Boston	777-2345	11
+21	Homer	Simpson	Springfield	686-8956	99
+31	Sideshow	Bob	Springfield	686-5555	66
+--------------
+SELECT * FROM purchasinginfo
+--------------
+
+productid	numberofitemsonhand	customerid
+99	20	21
+12	14	21
+66	10	21
+99	5	31
+12	5	31
+78	5	31
+66	5	31
+66	2	15
+78	2	15
+66	19	14
+--------------
+CREATE VIEW customer_purchase AS SELECT customers.first_name,customers.last_name,products.description,purchasinginfo.numberofitemsonhand,products.costperitem,(purchasinginfo.numberofitemsonhand*products.costperitem) as Totalcostofitem FROM customers,purchasinginfo,products where customers.customerid = purchasinginfo.customerid and purchasinginfo.productid = products.productid GROUP BY  customers.customerid ORDER BY  customers.last_name
+--------------
+
+--------------
+SELECT * FROM customer_purchase
+--------------
+
+first_name	last_name	description	numberofitemsonhand	costperitem	Totalcostofitem
+Sideshow	Bob	Helmet	5	29	145
+Fred	Flintstone	Elbow pads	2	14.25	28.5
+Peter	Griffens	Elbow pads	19	14.25	270.75
+Homer	Simpson	Helmet	20	29	580
+--------------
+SELECT * FROM customer_purchase WHERE Totalcostofitem > 100
+--------------
+
+first_name	last_name	description	numberofitemsonhand	costperitem	Totalcostofitem
+Sideshow	Bob	Helmet	5	29	145
+Peter	Griffens	Elbow pads	19	14.25	270.75
+Homer	Simpson	Helmet	20	29	580
+--------------
+DELETE FROM products WHERE description = "toothpaste"
+--------------
+
+--------------
+SELECT * FROM products
+--------------
+
+productid	description	costperitem	numberofitemsonhand
+11	Bike	150	200
+12	Socks	2	100
+66	Elbow pads	14.25	120
+68	hat	10	250
+69	chocolatebar	2.25	400
+78	Knee Pads	12.15	70
+88	Roller Blades	75	89
+99	Helmet	29	30
+--------------
+DELETE FROM agents WHERE city = "Springfield"
+--------------
+
