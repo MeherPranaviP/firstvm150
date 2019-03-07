@@ -1,0 +1,251 @@
+---
+title: "Assignment-2"
+author: "Pranavi"
+date: "23 January 2019"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+#install.packages("faraway")
+library(faraway)
+data("pima")
+#help(pima)
+```
+
+(a) Create a factor version of the test results and use this to produce an interleaved
+histogram to show how the distribution of insulin differs between those testing
+positive and negative. Do you notice anything unbelievable about the plot?  
+```{r cars1}
+data <- data.frame(test = factor(pima$test), 
+                   insulin = pima$insulin)
+library(ggplot2)
+ggplot(data,aes(x=pima$insulin,fill = test))+geom_histogram(binwidth = 40,position = 'dodge')
+
+```
+there are more values falling under 0. it indicates that it can contain lots of 0 values which are actually missing values. 
+
+(b) Replace the zero values of insulin with the missing value code NA. Recreate the
+interleaved histogram plot and comment on the distribution.
+```{r cars2}
+#str(pima)
+insulin<- pima$insulin
+pima$insulin[insulin == "0"]<-NA
+#is.na(pima$insulin)
+#pima$insulin
+data1 <- data.frame(test = factor(pima$test), 
+                   insulin = pima$insulin)
+ggplot(data1,aes(x=insulin,fill=test))+geom_histogram(binwidth = 40,position = 'dodge')
+```
+After replacing 0 values with NA then the histogram plot makes more sense. it removed the rows containing non-finite values.now the highest values for test 0 and test 1 are different from the previous plot.
+
+(c) Replace the incredible zeroes in other variables with the missing value code.
+Fit a model with the result of the diabetes test as the response and all the other
+variables as predictors. How many observations were used in the model fitting?
+Why is this less than the number of observations in the data frame. 
+```{r carse3}
+
+pima$glucose[pima$glucose == "0"]<-NA
+pima$diastolic[pima$diastolic == "0"]<-NA
+pima$triceps[pima$triceps == "0"]<-NA
+pima$bmi[pima$bmi == "0"]<-NA
+pima$age[pima$age == "0"]<-NA
+pima$diabetes[pima$diabetes == "0"]<-NA
+fit<-glm(test ~ pregnant+glucose+diastolic+triceps+bmi+diabetes+age+insulin ,family = binomial,pima)
+sumary(fit)
+nrow(pima)-392
+```
+We have only 392 rows and 376 observations are removed because of the missing values issue.
+
+
+(d) Refit the model but now without the insulin and triceps predictors. How
+many observations were used in fitting this model? Devise a test to compare
+this model with that in the previous question.
+```{r carse4}
+fit1<-glm(test ~ pregnant+glucose+diastolic+bmi+diabetes+age, family = binomial,pima)
+sumary(fit1)$aic
+n=(724-7)
+m=(392-9)
+df=(n-m)
+1-pchisq(deviance(fit1),deviance(fit),df,lower = FALSE)
+
+```
+ 724 observations were used to fit the model. since p-value is 0.5 which is greater than significance level , reduced  model is better.
+
+
+(e) Use AIC to select a model. You will need to take account of the missing values. Which predictors are selected? How many cases are used in your selected model?
+```{r carse5}
+AIC(fit1,fit)
+data_p<-na.omit(pima)
+lmna_p<-glm(test ~ pregnant+glucose+bmi+insulin+triceps+diastolic+age , data = data_p)
+red_p<-step(lmna_p,trace=0)
+anova(red_p,lmna_p,test = 'F')
+
+```
+With considering missing values full model is better considered on AIC value but since the full model and reduced model are not fit with same number of observations we cannot rely on the AIC values in this case. But after omitting the missing values and fitting the model again both full and reduced model, the reduced model seems to be more efficient than full model through step function.
+
+(f) Create a variable that indicates whether the case contains a missing value. Use this variable as a predictor of the test result. Is missingness associated with the test result? Refit the selected model, but now using as much of the data as reasonable. Explain why it is appropriate to do this.
+
+```{r carse6}
+#complete.cases(pima)
+dummy<-as.integer(complete.cases(pima))
+pima1<-cbind(pima,dummy)
+fit3<-glm(test ~ pregnant+glucose + diastolic + insulin + bmi + diabetes + 
+    +triceps+age+dummy,data = pima1,family = binomial)
+red_fit3<-glm(test ~. -triceps - insulin,data = pima1, family = binomial)
+anova(fit3,red_fit3,test = "Chisq")
+```
+SInce 376 missing values are removed , the missingness is not associated with the fitted models. I choose to remove triceps and insulin and refit the model as reduced model and did anova test to find reduced model is better than the full model.
+
+
+(g) Using the last fitted model of the previous question, what is the difference in the odds of testing positive for diabetes for a woman with a BMI at the first quartile compared with a woman at the third quartile, assuming that all other factors are held constant? Give a confidence interval for this difference.
+
+```{r carse7}
+quantile(pima$bmi,na.rm=TRUE)
+first_Q<-27.5
+third_Q<-36.6
+sumary(fit1)
+beta_bmi<-summary(fit1)$coefficients[5]
+logodddiff <- beta_bmi*(third_Q-first_Q) 
+diffodds<-exp(logodddiff)
+diffodds
+confint(fit1,"bmi",level=0.95)
+conf_l<-0.06059735*(third_Q-first_Q) 
+conf_u<-0.12242570*(third_Q-first_Q) 
+conflog_l<-exp(conf_l)
+conflog_u<-exp(conf_u)
+conflog_l
+conflog_u
+
+```
+the difference in log odds is 2.287433. The confidence interval lower bound value is 1.735744 and upper bound value is 3.046745
+
+(h) Do women who test positive have higher diastolic blood pressures? Is the diastolic blood pressure significant in the regression model? Explain the distinction between the two questions and discuss why the answers are only apparently contradictory
+
+```{r carse8}
+summary(fit)
+ggplot(pima, aes(x=factor(test),y=diastolic))+geom_boxplot(color="grey50")+geom_point(alpha=0.2, position= position_jitter())
+drop1(fit,test = "Chi")
+
+
+```
+The diastolic blood pressure is not significant in the regression model and from the plot there are more positive test results that have diastoloc blood pressure. it is contradictory since, the plot shhows the correlation with the response variable but in regression model diastolic has correlation with other predictor variables too which are influencing it so it is not significant.
+
+3. A study was conducted on children who had corrective spinal surgery. We are interested in factors that might result in kyphosis (a kind of deformation) after surgery. The data can be loaded by Consult the help page on the data for further details
+
+(a) Make plots of the response as it relates to each of the three predictors. You may find a jittered scatterplot more effective than the interleaved histogram for a dataset of this size. Comment on how the predictors appear to be related to the response.
+```{r carse9}
+#install.packages("rpart")
+library(rpart)
+#View(kyphosis)
+data("kyphosis")
+library(ggplot2)
+ggplot(kyphosis, aes(x=Kyphosis,y=Age))+geom_boxplot(color = "grey50")+geom_point(alpha=0.2, position= position_jitter())
+ggplot(kyphosis, aes(x=Kyphosis,y=Number))+geom_boxplot(color = "grey50")+geom_point(alpha=0.2, position= position_jitter())
+ggplot(kyphosis, aes(x=Kyphosis,y=Start))+geom_boxplot(color = "grey50")+geom_point(alpha=0.2, position= position_jitter())
+
+```
+For Age predictor there are more observations that have kyphosis absent and few observations that have kyphosis present. For the kyphosis present - the age predictor mean is around 100 which means most of the children age is around 100 months. 
+For Number of vertebrae involved the mean is near 5 , so on average if you have 5 number of vetebrae there is more likely to have kyphosis while lower vertebrae then more chances to have kyphosis absent.
+For Start higher the start value more likely to have kyphosis absent while the average value for start is around 5 to likely have kyphosis present
+
+(b) Fit a GLM with the kyphosis indicator as the response and the other three
+variables as predictors. Plot the deviance residuals against the fitted values.
+What can be concluded from this plot?
+
+```{r carse10}
+
+fit_k<-glm(Kyphosis ~ Age + Number + Start , data = kyphosis, family = binomial)
+ggplot(kyphosis,aes(x=fitted(fit_k),y = residuals(fit_k)))+geom_point()+geom_abline()+geom_smooth()
+
+
+```
+Because y = 0(absent) or 1(present), the residual can take only two values given a fixed linear predictor. The upper line
+in the plot corresponds to y=1 and the lower line to y=0.We gain no insight into the fit of the model.
+
+(c) Produce a binned residual plot as described in the text. You will need to select
+an appropriate amount of binning. Comment on the plot.
+
+```{r carse11}
+library(dplyr)
+data_p<-mutate(kyphosis,residuals=residuals(fit_k),linpred=predict(fit_k))
+gdf<-group_by(data_p,cut(linpred,breaks = unique(quantile(linpred,((1:16)/17)))))
+diagdf<-summarise(gdf,residuals = mean(residuals),linpred=mean(linpred))
+#plot(residuals ~ linpred , diagdf, xlab = "linear predictor")
+#install.packages("arm")
+library(arm)
+binnedplot(data_p$linpred,data_p$residuals)
+ggplot(diagdf,aes(x=linpred,y=residuals))+geom_point()
+```
+Since most of the points are in the confidence interval 
+
+(d) Plot the residuals against the Start predictor, using binning as appropriate.
+Comment on the plot.
+```{r carse12}
+data_p<-mutate(kyphosis,residuals=residuals(fit_k),linpred=predict(fit_k))
+group_by(data_p, Start) %>% summarise(residuals=mean(residuals), count=n()) %>% ggplot(aes(x=Start, y=residuals, size=sqrt(count))) +geom_point()
+#filter(data_p,Start == 6) %>% select(Start,Kyphosis,residuals)
+```
+SInce there is one point which has extreme residual when filtered the data it shows 4 rows with 3 of them having Kyphosis as present with high residual values.
+
+(e) Produce a normal QQ plot for the residuals. Interpret the plot.
+
+```{r carse13}
+qqnorm(residuals(fit_k))
+```
+From the plot we can understand that it can form a linear relation to some extent but kind of dissorted for values 1(present). there is evidently y=absent and y=present clusters have been formed. However it is not normally distributed so this does not raise any concerns. 
+
+(f) Make a plot of the leverages. Interpret the plot.
+
+```{r carse14}
+halfnorm(hatvalues(fit_k))
+library(dplyr)
+filter(kyphosis, hatvalues(fit_k) > 0.13)
+```
+From looking at the plot the observations 24, 53 have higher leverage values , the hatvalues > 0.13 has start of 10 which is high but the kyphosis is absent so we do not need to worry about it. but 53 and 24 seems to be extreme but given large data set we exactly do not know if there are really extreme.
+
+(g) Check the goodness of fit for this model. Create a plot like Figure 2.9. Compute
+the Hosmer-Lemeshow statistic and associated p-value. What do you conclude?
+
+```{r carse15}
+kyphosis$y <- ifelse(kyphosis$Kyphosis == "absent",0,1)
+kp_data <- na.omit(kyphosis)
+kp_data <- mutate(kp_data, predprob=predict(fit_k,type="response"))
+linpred<-predict(fit_k)
+predprob <- predict(fit_k, type="response")
+kp <- group_by(kp_data, cut(linpred, breaks=unique(quantile(linpred,(1:25)/26))))
+kpf <- summarise(kp, y=sum(y), ppred=mean(predprob), count=n())
+kpf <- mutate(kpf, se.fit=sqrt(ppred*(1-ppred)/count))
+ggplot(kpf,aes(x=ppred,y=y/count,ymin=y/count-2*se.fit,ymax=y/count+2*se.fit))+geom_point()+geom_linerange(color=grey(0.75))+geom_abline(intercept=0,slope=1)+xlab("Predicted Probability")+ylab("Observed Proportion")
+kpstat <- with(kpf, sum( (y-count*ppred)^2/(count*ppred*(1-ppred))))
+c(kpstat, nrow(kpf))
+1-pchisq(24.65663,25.00000-1)
+
+```
+Since p-value greater than the significance level we can say that there is no lack of fit of the data.
+
+
+(h) Use the model to classify the subjects into predicted outcomes using a 0.5
+cutoff. Produce cross-tabulation of these predicted outcomes with the actual
+outcomes. When kyphosis is actually present, what is the probability that this
+model would predict a present outcome? What is the name for this characteristic
+of the test?
+
+```{r carse16}
+kps <- mutate(kp_data, predout=ifelse(predprob < 0.5, "absent", "Present"))
+xtabs( ~ Kyphosis + predout, kps)
+Act_Pres<-7/(10+7)
+Act_Pres
+```
+The children who may have kyphosis is 0.4117647, the correct classification of it is called sensitivity. 
+
+

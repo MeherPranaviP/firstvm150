@@ -1,0 +1,318 @@
+---
+title: "Assignment-5"
+author: "Pranavi"
+date: "4 December 2018"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+1. The following is the summary output from a logistic regression model: log( p
+1???p
+) = ??0 + ??1x1 + ??2x2, where
+p = p(Y = 1|x1, x2). Note that the response variable Y is binary
+
+(a) Obtain the probability of Y = 1 at x1 = 1 and x2 = 0.5. (1 pt)
+```{r cars}
+gx= -2.7399+(3.0287*1)-(1.2081*0.5)
+gx
+px = (exp(gx))/(1+exp(gx))
+px
+
+```
+log(p/1-p)= B0+B1x1+B2x2
+p(x) = 0.4218338
+
+
+(b) Test H0 : ??2 = 0 vs H1 : ??2 6= 0 at ?? = 0.05. 
+```{r cars1}
+
+b2 = 1.2081
+Se2 = 0.4620
+Z2 = b2/Se2
+Z2
+#Calculating p-value
+C = 1 - pt(abs(Z2),df = 99)
+p_val = 2*C
+p_val
+```
+Since p-value is less than significance level  We reject the null hypothesis for Z2
+
+(c) Test H0 : ??1 = ??2 = 0 vs H1 : H0 is false, at ?? = 0.05. 
+
+```{r cars2}
+deviance = (110.216 - 56.436)
+k = (99 - 97)
+pchisq(deviance,k,lower.tail = FALSE)
+```
+the p-value is lesser than the significance level, so we have strong evidence to reject the null hypothesis
+
+2. For question 2, you will use the SAheart data that is in the ElemStatLearn package. Install the package
+if necessary.
+Using the whole data (462 observations), fit a logistic regression model. Use chd as the response and the others
+as the predictors (9 predictors).
+
+(a) For the same data (462 observations), obtain the Y^ values at cutoff = 0.5. Make a confusion matrix and
+report the accuracy, sensitivity (recall), specificity and precision. 
+```{r cars3}
+#install.packages("ElemStatLearn")
+library(ElemStatLearn)
+#SAheart
+lm_chd<-glm(chd ~ . , data  = SAheart,family = binomial(link = "logit"))
+fit_chd = glm(chd ~ . , data = SAheart, family = binomial)
+make_conf_mat = function(predicted, actual) {
+  table(predicted = predicted, actual = actual)
+}
+test_prob = predict(fit_chd, SAheart[-10],type="response")
+cutoff = 0.5
+type_predicted = numeric(nrow(SAheart))
+type_predicted[which(test_prob > cutoff)] = 1
+conf_mat_5 = make_conf_mat(type_predicted,SAheart$chd)
+conf_mat_5
+get_sens = function(conf_mat) 
+{
+  conf_mat[2, 2] / sum(conf_mat[, 2])
+}
+
+get_spec =  function(conf_mat) 
+{
+  conf_mat[1, 1] / sum(conf_mat[, 1])
+}
+
+get_prec =  function(conf_mat) 
+{
+  conf_mat[2, 2] / sum(conf_mat[2, ])
+}
+acc5 = mean(type_predicted == SAheart$chd) # Accuracy
+acc5
+get_sens(conf_mat_5) # Sensitivity (Recall)
+get_spec(conf_mat_5) # Specificity
+get_prec(conf_mat_5) # Precision
+
+```
+
+(b) Using the backward selection approach with BIC, find the best subset of predictors to predict chd. (No
+need to show all the iterative output from the step function. Use "trace=0" in the function to
+suppress the output for each step. This simply stores the final model.)
+
+```{r cars4}
+library(faraway)
+fit_bic=step(fit_chd,direction = "backward",k = log(nrow(SAheart)),trace = 0)
+
+```
+
+(c) We want to see whether the predictors not included in the subset obtained in (b) are significant using a
+likelihood ratio test. Report the full model, reduced model (with ?? parameters) and the null hypothesis for
+the test
+
+```{r cars5}
+anova(fit_bic,lm_chd, test = "LRT")
+
+```
+the full model has all predictors in it.
+the reduced model has tobacco, ldl, famhist, typea, age
+the null hypothesis : Betaq = Betaq1 = ..... = Betap-1 = 0
+Since the p-value is greater than the significance level we fail to reject so , p-q predictors can be dropped
+
+(d) For the test in (c), obtain the test statistic and make a conclusion at ?? = 0.05
+
+```{r cars6}
+red_d=deviance(fit_bic)
+ful_d=deviance(lm_chd)
+D_stat = red_d - ful_d 
+k = 10 - 6
+1 - pchisq(D_stat,k)
+```
+the p - value is greater than the significance , so we fail to reject the null hypothesis. 
+
+3. For question 3, you will use the ILPD (Indian Liver Patient Dataset) data. Import the data from
+https://raw.githubusercontent.com/hgweon2/mda9159a/master/ILPD2.csv
+The imported dataset contains 579 observations with 11 variables. Use Selector as the response variable and
+the others as predictors. Additional information about the variables can be found at: https://archive.ics.
+uci.edu/ml/datasets/ILPD+%28Indian+Liver+Patient+Dataset%29.
+For the following questions, use the first 400 observations of the data set as the training data and
+the rest (179 observations) as the test data.
+
+```{r cars7}
+ilpd <- read.csv("https://raw.githubusercontent.com/hgweon2/mda9159a/master/ILPD2.csv")
+ilpd[ilpd == "1"]<-0
+ilpd[ilpd == "2"] <- 1
+sel_train = ilpd[c(1:400),]
+sel_test = ilpd[-c(1:400),]
+
+```
+
+(a) Fit a logistic model to the training data. Use the trained model to predict the test data (cutoff 0.5). Using
+the prediction results, make a confusion matrix between Y and Y^ and report the accuracy, sensitivity (recall),
+specificity and precision of the prediction
+```{r cars8}
+ilpd <- read.csv("https://raw.githubusercontent.com/hgweon2/mda9159a/master/ILPD2.csv")
+ilpd$Selector<-ilpd$Selector-1
+sel_train = ilpd[c(1:400),]
+sel_test = ilpd[-c(1:400),]
+
+lm_sel<-glm(Selector ~ . , data  = sel_train,family = binomial(link = "logit"))
+make_conf_mat = function(predicted, actual) {
+  table(predicted = predicted, actual = actual)
+}
+test_prob = predict(lm_sel, sel_test[-11],type="response")
+cutoff = 0.5
+type_predicted = numeric(nrow(sel_test))
+type_predicted[which(test_prob > cutoff)] = 1
+conf_mat_5 = make_conf_mat(type_predicted,sel_test$Selector)
+conf_mat_5
+get_sens = function(conf_mat) 
+{
+  conf_mat[2, 2] / sum(conf_mat[, 2])
+}
+
+get_spec =  function(conf_mat) 
+{
+  conf_mat[1, 1] / sum(conf_mat[, 1])
+}
+
+get_prec =  function(conf_mat) 
+{
+  conf_mat[2, 2] / sum(conf_mat[2, ])
+}
+acc5 = mean(type_predicted == sel_test$Selector) # Accuracy
+acc5
+get_sens(conf_mat_5) # Sensitivity (Recall)
+get_spec(conf_mat_5) # Specificity
+get_prec(conf_mat_5) # Precision
+
+```
+The accuracy is 0.6648045
+The Sensitivity is 0.8679245
+The Specificity is 0.5793651
+The Precision is 0.4646465
+
+(b) Repeat (a) using cutoff = 0.8.
+
+```{r cars9}
+ilpd <- read.csv("https://raw.githubusercontent.com/hgweon2/mda9159a/master/ILPD2.csv")
+ilpd$Selector <- ilpd$Selector-1
+sel_train = ilpd[c(1:400),]
+sel_test = ilpd[-c(1:400),]
+
+lm_sel<-glm(Selector ~ . , data  = sel_train,family = binomial(link = "logit"))
+make_conf_mat = function(predicted, actual) {
+  table(predicted = predicted, actual = actual)
+}
+test_prob = predict(lm_sel, sel_test[-11],type="response")
+cutoff = 0.8
+type_predicted = numeric(nrow(sel_test))
+type_predicted[which(test_prob > cutoff)] = 1
+conf_mat_5 = make_conf_mat(type_predicted,sel_test$Selector)
+conf_mat_5
+get_sens = function(conf_mat) 
+{
+  conf_mat[2,2] / sum(conf_mat[,2])
+}
+
+get_spec =  function(conf_mat) 
+{
+  conf_mat[1, 1] / sum(conf_mat[, 1])
+}
+
+get_prec =  function(conf_mat) 
+{
+  conf_mat[2, 2] / sum(conf_mat[2, ])
+}
+acc5 = mean(type_predicted == sel_test$Selector) # Accuracy
+acc5
+get_sens(conf_mat_5) # Sensitivity (Recall)
+get_spec(conf_mat_5) # Specificity
+get_prec(conf_mat_5) # Precision
+
+```
+
+(c) If we want to increase the sensitivity of prediction (using the same logistic model), how should the cutoff
+be changed from 0.5 (decrease/increase)? 
+
+```{r cars10}
+ilpd <- read.csv("https://raw.githubusercontent.com/hgweon2/mda9159a/master/ILPD2.csv")
+ilpd$Selector <-ilpd$Selector-1
+sel_train = ilpd[c(1:400),]
+sel_test = ilpd[-c(1:400),]
+
+lm_sel<-glm(Selector ~ . , data  = sel_train,family = binomial(link = "logit"))
+make_conf_mat = function(predicted, actual) {
+  table(predicted = predicted, actual = actual)
+}
+test_prob = predict(lm_sel, sel_test[-11],type="response")
+cutoff = 0.3
+type_predicted = numeric(nrow(sel_test))
+type_predicted[which(test_prob > cutoff)] = 1
+conf_mat_5 = make_conf_mat(type_predicted,sel_test$Selector)
+conf_mat_5
+get_sens = function(conf_mat) 
+{
+  conf_mat[2,2] / sum(conf_mat[,2])
+}
+
+get_spec =  function(conf_mat) 
+{
+  conf_mat[1, 1] / sum(conf_mat[, 1])
+}
+
+get_prec =  function(conf_mat) 
+{
+  conf_mat[2, 2] / sum(conf_mat[2, ])
+}
+acc5 = mean(type_predicted == sel_test$Selector) # Accuracy
+acc5
+get_sens(conf_mat_5) # Sensitivity (Recall)
+get_spec(conf_mat_5) # Specificity
+get_prec(conf_mat_5) # Precision
+
+```
+If the cutoff decreases then the sensitivity increases and when the cutoff increases then the sensitivity decreases.
+Higher the sensitivity means there are more number of true positive values that we predicted correctly.
+hence the cutoff should decrease than 0.5
+
+(d) Draw the ROC curve of the logistic model for your prediction. Obtain the AUC value.
+
+```{r cars11}
+library(pROC)
+test_prob<-predict(lm_sel,sel_test[-11],type= "response")
+test_roc = roc(sel_test$Selector ~ test_prob, plot = TRUE, xlim=c(1,0))
+test_roc$auc
+```
+AUC value is 0.7674
+
+
+(e) Repeat (d) using LDA and Naive Bayes. Which of the models is the best in terms of AUC?
+
+```{r cars12}
+library(MASS)
+library(pROC)
+fit_lda = lda(Selector ~ . , data = sel_train)
+pred_lda<-predict(fit_lda,newdata = sel_test)
+roc_lda = roc(sel_test$Selector ~ pred_lda$posterior[,2], plot = TRUE, xlim = c(1,0))
+roc_lda$auc
+library(e1071)
+fit_nb = naiveBayes(as.factor(Selector) ~ ., data = sel_train)
+fit_nb
+prob_nb = predict(fit_nb,newdata= sel_test,type="raw")
+roc_nb = roc(sel_test$Selector ~ prob_nb[,2], plot = TRUE,col="grey")
+roc_nb$auc
+```
+The AUC for the lda is higher than the naive baysian so, lda model is better.
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
